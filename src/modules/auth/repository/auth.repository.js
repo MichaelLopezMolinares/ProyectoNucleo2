@@ -1,4 +1,4 @@
-const { query } = require('../../../config/database');
+const { query } = require('../../../database/pool');
 
 class AuthRepository {
   async findByEmail(email) {

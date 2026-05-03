@@ -35,12 +35,12 @@ app.get('/api/health', (req, res) => {
 });
 
 // ─── Registrar rutas de módulos ─────────────────────────────────
-app.use('/api/auth', authRoutes);
+// app.use('/api/auth', authRoutes);
 app.use('/api/academic', academicRoutes);
-app.use('/api/teachers', teacherRoutes);
-app.use('/api/classrooms', classroomRoutes);
-app.use('/api/schedule-engine', scheduleEngineRoutes);
-app.use('/api/schedules', scheduleViewRoutes);
+// app.use('/api/teachers', teacherRoutes);
+// app.use('/api/classrooms', classroomRoutes);
+// app.use('/api/schedule-engine', scheduleEngineRoutes);
+// app.use('/api/schedules', scheduleViewRoutes);
 
 // ─── Ruta no encontrada ────────────────────────────────────────
 app.use((req, res) => {
