@@ -1,44 +1,81 @@
+/**
+ * Servicio: Autenticación
+ * Módulo: Auth
+ * Lógica de negocio — login, registro, JWT
+ */
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const authRepo = require('../repository/auth.repository');
-const jwtConfig = require('../../../config/jwt');
-const { UnauthorizedError, ConflictError } = require('../../../core/errors/AppError');
+const { authConfig } = require('../../../config/auth.config');
+const { AuthRepository } = require('../repositories/auth.repository');
+const { UnauthorizedException, ConflictException, NotFoundException } = require('../../../shared/exceptions');
 
 class AuthService {
-  async login({ email, password }) {
-    const user = await authRepo.findByEmail(email);
-    if (!user) throw new UnauthorizedError('Credenciales inválidas');
-    if (!user.active) throw new UnauthorizedError('Usuario inactivo');
+  constructor() {
+    this.authRepository = new AuthRepository();
+  }
 
-    const valid = await bcrypt.compare(password, user.password_hash);
-    if (!valid) throw new UnauthorizedError('Credenciales inválidas');
+  async login(loginDTO) {
+    const user = await this.authRepository.findByEmail(loginDTO.email);
+    if (!user || !user.activo) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
 
-    const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
-      jwtConfig.secret,
-      { expiresIn: jwtConfig.expiresIn }
+    const validPassword = await bcrypt.compare(loginDTO.password, user.passwordHash);
+    if (!validPassword) {
+      throw new UnauthorizedException('Credenciales inválidas');
+    }
+
+    const token = this._generateToken(user);
+    return { token, user: user.toSafeJSON() };
+  }
+
+  async register(registerDTO) {
+    const existing = await this.authRepository.findByEmail(registerDTO.email);
+    if (existing) {
+      throw new ConflictException('El email ya está registrado');
+    }
+
+    const passwordHash = await bcrypt.hash(registerDTO.password, 10);
+    const user = await this.authRepository.create({
+      nombre: registerDTO.nombre,
+      email: registerDTO.email,
+      passwordHash,
+      rol: registerDTO.rol,
+    });
+
+    return user.toSafeJSON();
+  }
+
+  async findAll() {
+    const users = await this.authRepository.findAll();
+    return users.map(u => u.toSafeJSON());
+  }
+
+  async findById(id) {
+    const user = await this.authRepository.findById(id);
+    if (!user) throw new NotFoundException('Usuario', id);
+    return user.toSafeJSON();
+  }
+
+  async update(id, updateDTO) {
+    const user = await this.authRepository.update(id, updateDTO);
+    if (!user) throw new NotFoundException('Usuario', id);
+    return user.toSafeJSON();
+  }
+
+  async delete(id) {
+    const deleted = await this.authRepository.delete(id);
+    if (!deleted) throw new NotFoundException('Usuario', id);
+    return true;
+  }
+
+  _generateToken(user) {
+    return jwt.sign(
+      { id: user.id, email: user.email, rol: user.rol },
+      authConfig.jwtSecret,
+      { expiresIn: authConfig.jwtExpiresIn }
     );
-
-    return {
-      token,
-      user: { id: user.id, username: user.username, email: user.email, role: user.role },
-    };
-  }
-
-  async register({ username, email, password, role }) {
-    const existing = await authRepo.findByEmail(email);
-    if (existing) throw new ConflictError('El correo ya está registrado');
-
-    const passwordHash = await bcrypt.hash(password, 12);
-    return authRepo.create({ username, email, passwordHash, role: role || 'viewer' });
-  }
-
-  async getProfile(userId) {
-    const user = await authRepo.findById(userId);
-    if (!user) throw new UnauthorizedError();
-    const { password_hash, ...profile } = user;
-    return profile;
   }
 }
 
-module.exports = new AuthService();
+module.exports = { AuthService };
