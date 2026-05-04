@@ -4,10 +4,9 @@
  */
 const fs = require('fs');
 const path = require('path');
-const { pool } = require('./pool');
+const { sequelize } = require('./sequelize');
 
 async function seed() {
-  const client = await pool.connect();
   try {
     const seedsDir = path.join(__dirname, 'seeds');
     const files = fs.readdirSync(seedsDir)
@@ -19,7 +18,7 @@ async function seed() {
     for (const file of files) {
       const sql = fs.readFileSync(path.join(seedsDir, file), 'utf8');
       console.log(`  ▶ ${file}`);
-      await client.query(sql);
+      await sequelize.query(sql); // 🔥 cambio clave
       console.log(`  ✅ ${file} completado`);
     }
 
@@ -27,9 +26,6 @@ async function seed() {
   } catch (error) {
     console.error('❌ Error en seed:', error.message);
     throw error;
-  } finally {
-    client.release();
-    await pool.end();
   }
 }
 

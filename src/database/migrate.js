@@ -4,10 +4,9 @@
  */
 const fs = require('fs');
 const path = require('path');
-const { pool } = require('./pool');
+const { sequelize } = require('./sequelize');
 
 async function migrate() {
-  const client = await pool.connect();
   try {
     const migrationsDir = path.join(__dirname, 'migrations');
     const files = fs.readdirSync(migrationsDir)
@@ -19,7 +18,7 @@ async function migrate() {
     for (const file of files) {
       const sql = fs.readFileSync(path.join(migrationsDir, file), 'utf8');
       console.log(`  ▶ ${file}`);
-      await client.query(sql);
+      await sequelize.query(sql); // 🔥 cambio clave
       console.log(`  ✅ ${file} completada`);
     }
 
@@ -27,9 +26,6 @@ async function migrate() {
   } catch (error) {
     console.error('❌ Error en migración:', error.message);
     throw error;
-  } finally {
-    client.release();
-    await pool.end();
   }
 }
 
