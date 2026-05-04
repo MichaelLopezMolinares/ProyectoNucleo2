@@ -7,19 +7,30 @@ const { DocenteDisponibilidad } = require('../entities/disponibilidad.entity');
 
 class TeacherRepository {
   async findAll() {
-    const result = await sequelize.query('SELECT * FROM docentes WHERE activo = TRUE ORDER BY apellido, nombre');
-    return result.map(r => new Docente(r));
-  }
+  const [rows] = await sequelize.query(
+    'SELECT * FROM docentes WHERE activo = TRUE ORDER BY apellido, nombre'
+  );
 
-  async findById(id) {
-    const result = await sequelize.query('SELECT * FROM docentes WHERE id = $1', [id]);
-    return result[0] ? new Docente(result[0]) : null;
-  }
+  return rows.map(r => new Docente(r));
+}
 
-  async findByCodigo(codigo) {
-    const result = await sequelize.query('SELECT * FROM docentes WHERE codigo = $1', [codigo]);
-    return result[0] ? new Docente(result[0]) : null;
-  }
+async findById(id) {
+  const [rows] = await sequelize.query(
+    'SELECT * FROM docentes WHERE id = $1',
+    [id]
+  );
+
+  return rows[0] ? new Docente(rows[0]) : null;
+}
+
+async findByCodigo(codigo) {
+  const [rows] = await sequelize.query(
+    'SELECT * FROM docentes WHERE codigo = $1',
+    [codigo]
+  );
+
+  return rows[0] ? new Docente(rows[0]) : null;
+}
 
   async create({ codigo, nombre, apellido, email, tipoContrato, maxHorasSemana }) {
     const result = await sequelize.query(

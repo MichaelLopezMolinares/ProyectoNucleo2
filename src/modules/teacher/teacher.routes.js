@@ -9,14 +9,14 @@ const { authMiddleware } = require('../auth/middleware/auth.middleware');
 const router = Router();
 const controller = new TeacherController();
 
-router.get('/', authMiddleware, controller.findAll);
-router.get('/:id', authMiddleware, controller.findById);
-router.post('/', authMiddleware, docenteValidation, controller.create);
-router.put('/:id', authMiddleware, controller.update);
-router.delete('/:id', authMiddleware, controller.delete);
+router.get('/', controller.findAll);
+router.get('/:id', controller.findById);
+router.post('/', docenteValidation, controller.create);
+router.put('/:id', controller.update);
+router.delete('/:id', controller.delete);
 
 // Disponibilidad
-router.get('/:id/disponibilidad', authMiddleware, controller.getDisponibilidad);
-router.put('/:id/disponibilidad', authMiddleware, disponibilidadValidation, controller.setDisponibilidad);
+router.get('/:id/disponibilidad', controller.getDisponibilidad);
+router.put('/:id/disponibilidad', disponibilidadValidation, controller.setDisponibilidad);
 
 module.exports = router;

@@ -17,37 +17,37 @@ class ApiClient {
   }
 
   static async request(endpoint, options = {}) {
-    const url = `${API_URL}${endpoint}`;
-    const token = this.getToken();
+  const url = `${API_URL}${endpoint}`;
+  const token = this.getToken();
 
-    const config = {
-      headers: {
-        'Content-Type': 'application/json',
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        ...options.headers,
-      },
-      ...options,
-    };
+  const config = {
+    method: options.method || 'GET',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(options.headers || {}),
+    },
+    body: options.body && typeof options.body === 'object'
+      ? JSON.stringify(options.body)
+      : options.body,
+    cache: 'no-store',
+  };
 
-    if (config.body && typeof config.body === 'object') {
-      config.body = JSON.stringify(config.body);
-    }
+  const response = await fetch(url, config);
 
-    const response = await fetch(url, config);
+  if (response.status === 204) return null;
 
-    if (response.status === 204) return null;
+  const data = await response.json();
 
-    const data = await response.json();
-
-    if (!response.ok) {
-      const error = new Error(data?.error?.message || 'Error del servidor');
-      error.status = response.status;
-      error.data = data;
-      throw error;
-    }
-
-    return data;
+  if (!response.ok) {
+    const error = new Error(data?.error?.message || 'Error del servidor');
+    error.status = response.status;
+    error.data = data;
+    throw error;
   }
+
+  return data;
+}
 
   static get(endpoint) {
     return this.request(endpoint, { method: 'GET' });

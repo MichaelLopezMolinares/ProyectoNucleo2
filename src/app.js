@@ -22,12 +22,21 @@ const scheduleViewRoutes = require('./modules/schedule-view/schedule-view.routes
 // ─── Crear aplicación Express ───────────────────────────────────
 const app = express();
 
+// ─── Evitar cache en respuestas API ───────────────────────────
+app.use((req, res, next) => {
+  res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+  res.setHeader('Pragma', 'no-cache');
+  res.setHeader('Expires', '0');
+  next();
+});
+
 // ─── Middleware globales ────────────────────────────────────────
 app.use(helmet());
 app.use(cors({ origin: serverConfig.corsOrigin, credentials: true }));
 app.use(morgan('dev'));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
 
 // ─── Health check ───────────────────────────────────────────────
 app.get('/api/health', (req, res) => {

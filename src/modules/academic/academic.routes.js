@@ -10,24 +10,24 @@ const router = Router();
 const controller = new AcademicController();
 
 // ─── Programas ──────────────────────────────────────────────
-router.get('/programas', authMiddleware, controller.findAllProgramas);
-router.get('/programas/:id', authMiddleware, controller.findProgramaById);
-router.post('/programas', authMiddleware, programaValidation, controller.createPrograma);
-router.put('/programas/:id', authMiddleware, controller.updatePrograma);
-router.delete('/programas/:id', authMiddleware, controller.deletePrograma);
+router.get('/programas', controller.findAllProgramas);
+router.get('/programas/:id', controller.findProgramaById);
+router.post('/programas', programaValidation, controller.createPrograma);
+router.put('/programas/:id', controller.updatePrograma);
+router.delete('/programas/:id', controller.deletePrograma);
 
 // ─── Asignaturas ────────────────────────────────────────────
-router.get('/asignaturas', authMiddleware, controller.findAllAsignaturas);
-router.get('/asignaturas/:id', authMiddleware, controller.findAsignaturaById);
-router.post('/asignaturas', authMiddleware, asignaturaValidation, controller.createAsignatura);
-router.put('/asignaturas/:id', authMiddleware, controller.updateAsignatura);
-router.delete('/asignaturas/:id', authMiddleware, controller.deleteAsignatura);
+router.get('/asignaturas', controller.findAllAsignaturas);
+router.get('/asignaturas/:id', controller.findAsignaturaById);
+router.post('/asignaturas', asignaturaValidation, controller.createAsignatura);
+router.put('/asignaturas/:id', controller.updateAsignatura);
+router.delete('/asignaturas/:id', controller.deleteAsignatura);
 
 // ─── Grupos ─────────────────────────────────────────────────
-router.get('/grupos', authMiddleware, controller.findAllGrupos);
-router.get('/grupos/:id', authMiddleware, controller.findGrupoById);
-router.post('/grupos', authMiddleware, grupoValidation, controller.createGrupo);
-router.put('/grupos/:id', authMiddleware, controller.updateGrupo);
-router.delete('/grupos/:id', authMiddleware, controller.deleteGrupo);
+router.get('/grupos', controller.findAllGrupos);
+router.get('/grupos/:id', controller.findGrupoById);
+router.post('/grupos', grupoValidation, controller.createGrupo);
+router.put('/grupos/:id', controller.updateGrupo);
+router.delete('/grupos/:id', controller.deleteGrupo);
 
 module.exports = router;
