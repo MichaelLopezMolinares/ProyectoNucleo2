@@ -2,6 +2,8 @@
  * Agenda Fácil – Punto de entrada del servidor
  * Monolito modular con arquitectura en capas
  */
+require('dotenv').config();
+
 const app = require('./src/app');
 const { serverConfig } = require('./src/config/server.config');
 const { sequelize } = require('./src/database/sequelize');
