@@ -1,16 +1,26 @@
-/**
- * Configuración de base de datos PostgreSQL
- */
-require('dotenv').config();
+const { Sequelize } = require('sequelize');
 
-const dbConfig = {
-  host: process.env.DB_HOST || 'localhost',
-  port: parseInt(process.env.DB_PORT, 10) || 5432,
-  database: process.env.DB_NAME || 'agenda_facil',
-  user: process.env.DB_USER || 'postgres',
-  password: process.env.DB_PASSWORD || '',
-  poolMin: parseInt(process.env.DB_POOL_MIN, 10) || 2,
-  poolMax: parseInt(process.env.DB_POOL_MAX, 10) || 10,
-};
+const sequelize = new Sequelize(
+  'postgresql://postgres.fgjxavwyjwkdscqgjmcp:YytFMRHKuM0wKB4s@aws-1-us-west-2.pooler.supabase.com:6543/postgres',
+  {
+    dialect: 'postgres',
+    logging: false,
+    dialectOptions: {
+      ssl: {
+        require: true,
+        rejectUnauthorized: false
+      }
+    }
+  }
+);
 
-module.exports = { dbConfig };
+async function test() {
+  try {
+    await sequelize.authenticate();
+    console.log('DB conectada correctamente 🔥');
+  } catch (error) {
+    console.error('Error de conexión:', error);
+  }
+}
+
+module.exports = { sequelize, test };
