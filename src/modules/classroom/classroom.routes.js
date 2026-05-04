@@ -9,10 +9,10 @@ const { authMiddleware } = require('../auth/middleware/auth.middleware');
 const router = Router();
 const controller = new ClassroomController();
 
-router.get('/', authMiddleware, controller.findAll);
-router.get('/:id', authMiddleware, controller.findById);
-router.post('/', authMiddleware, aulaValidation, controller.create);
-router.put('/:id', authMiddleware, controller.update);
-router.delete('/:id', authMiddleware, controller.delete);
+router.get('/', controller.findAll);
+router.get('/:id', controller.findById);
+router.post('/', aulaValidation, controller.create);
+router.put('/:id', controller.update);
+router.delete('/:id', controller.delete);
 
 module.exports = router;
