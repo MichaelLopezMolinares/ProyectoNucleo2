@@ -2,7 +2,7 @@
  * Pool de conexiones PostgreSQL
  */
 const { Pool } = require('pg');
-const { dbConfig } = require('../config/database.config');
+const dbConfig = require('../config/database.config');
 
 const pool = new Pool({
   host: dbConfig.host,
