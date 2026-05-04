@@ -8,8 +8,14 @@ class ScheduleViewRepository {
   /**
    * Obtiene horarios publicados con filtros
    */
-  async findHorarios(filters = {}) {
-    let sql = 'SELECT h.*, pa.codigo as periodo_codigo, pa.nombre as periodo_nombre FROM horarios h JOIN periodos_academicos pa ON h.periodo_id = pa.id WHERE 1=1';
+async findHorarios(filters = {}) {
+    let sql = `
+      SELECT h.*, pa.codigo as periodo_codigo, pa.nombre as periodo_nombre
+      FROM horarios h
+      JOIN periodos_academicos pa ON h.periodo_id = pa.id
+      WHERE 1=1
+    `;
+
     const params = [];
     let idx = 1;
 
@@ -17,14 +23,19 @@ class ScheduleViewRepository {
       sql += ` AND h.periodo_id = $${idx++}`;
       params.push(filters.periodoId);
     }
+
     if (filters.estado) {
       sql += ` AND h.estado = $${idx++}`;
       params.push(filters.estado);
     }
 
     sql += ' ORDER BY h.created_at DESC';
-    const result = await sequelize.query(sql, params);
-    return result;
+
+    const [rows] = await sequelize.query(sql, {
+      bind: params
+    });
+
+    return rows;
   }
 
   /**
@@ -60,6 +71,7 @@ class ScheduleViewRepository {
       JOIN aulas au ON a.aula_id = au.id
       WHERE a.horario_id = $1
     `;
+
     const params = [horarioId];
     let idx = 2;
 
@@ -67,32 +79,41 @@ class ScheduleViewRepository {
       sql += ` AND a.docente_id = $${idx++}`;
       params.push(filters.docenteId);
     }
+
     if (filters.aulaId) {
       sql += ` AND a.aula_id = $${idx++}`;
       params.push(filters.aulaId);
     }
+
     if (filters.grupoId) {
       sql += ` AND a.grupo_id = $${idx++}`;
       params.push(filters.grupoId);
     }
+
     if (filters.dia) {
       sql += ` AND a.dia = $${idx++}`;
       params.push(filters.dia);
     }
+
     if (filters.programaId) {
       sql += ` AND p.id = $${idx++}`;
       params.push(filters.programaId);
     }
 
     sql += ' ORDER BY a.dia, a.hora_inicio';
-    const result = await sequelize.query(sql, params);
-    return result;
+
+    const [rows] = await sequelize.query(sql, {
+      bind: params
+    });
+
+    return rows;
   }
+
 
   /**
    * Obtiene el horario de un docente específico
    */
-  async findByDocente(horarioId, docenteId) {
+   async findByDocente(horarioId, docenteId) {
     return this.findScheduleView(horarioId, { docenteId });
   }
 
@@ -106,8 +127,8 @@ class ScheduleViewRepository {
   /**
    * Estadísticas de un horario
    */
-  async getStats(horarioId) {
-    const result = await sequelize.query(`
+ async getStats(horarioId) {
+    const [rows] = await sequelize.query(`
       SELECT
         COUNT(*) AS total_asignaciones,
         COUNT(DISTINCT docente_id) AS total_docentes,
@@ -116,9 +137,13 @@ class ScheduleViewRepository {
         COUNT(DISTINCT dia) AS dias_usados
       FROM asignaciones
       WHERE horario_id = $1
-    `, [horarioId]);
-    return result[0];
+    `, {
+      bind: [horarioId]
+    });
+
+    return rows[0];
   }
 }
+
 
 module.exports = { ScheduleViewRepository };

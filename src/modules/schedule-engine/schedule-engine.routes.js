@@ -10,15 +10,15 @@ const router = Router();
 const controller = new ScheduleEngineController();
 
 // Estrategias disponibles
-router.get('/strategies', authMiddleware, controller.getStrategies);
+router.get('/strategies', controller.getStrategies);
 
 // Generar horario (solo ADMIN y COORDINADOR)
-router.post('/generate', authMiddleware, roleMiddleware('ADMIN', 'COORDINADOR'), generateValidation, controller.generate);
+router.post('/generate', roleMiddleware('ADMIN', 'COORDINADOR'), generateValidation, controller.generate);
 
 // Detalle de un horario generado
-router.get('/:id', authMiddleware, controller.getDetail);
+router.get('/:id', controller.getDetail);
 
 // Publicar horario (solo ADMIN)
-router.put('/:id/publish', authMiddleware, roleMiddleware('ADMIN'), controller.publish);
+router.put('/:id/publish', roleMiddleware('ADMIN'), controller.publish);
 
 module.exports = router;

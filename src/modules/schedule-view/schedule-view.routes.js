@@ -8,10 +8,10 @@ const { authMiddleware } = require('../auth/middleware/auth.middleware');
 const router = Router();
 const controller = new ScheduleViewController();
 
-router.get('/', authMiddleware, controller.findAll);
-router.get('/:id/view', authMiddleware, controller.getView);
-router.get('/:id/docente/:docenteId', authMiddleware, controller.getDocenteView);
-router.get('/:id/aula/:aulaId', authMiddleware, controller.getAulaView);
-router.get('/:id/stats', authMiddleware, controller.getStats);
+router.get('/', controller.findAll);
+router.get('/:id/view', controller.getView);
+router.get('/:id/docente/:docenteId', controller.getDocenteView);
+router.get('/:id/aula/:aulaId', controller.getAulaView);
+router.get('/:id/stats', controller.getStats);
 
 module.exports = router;
