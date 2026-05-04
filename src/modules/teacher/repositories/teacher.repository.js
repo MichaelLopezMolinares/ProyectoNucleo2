@@ -1,7 +1,7 @@
 /**
  * Repositorio: Docentes
  */
-const { query } = require('../../../database/pool');
+const { sequelize } = require('../../../database/sequelize');
 const { Docente } = require('../entities/docente.entity');
 const { DocenteDisponibilidad } = require('../entities/disponibilidad.entity');
 

@@ -1,7 +1,7 @@
 /**
  * Repositorio: Asignaturas
  */
-const { query } = require('../../../database/pool');
+const { sequelize } = require('../../../database/sequelize');
 const { Asignatura } = require('../entities/asignatura.entity');
 
 class AsignaturaRepository {

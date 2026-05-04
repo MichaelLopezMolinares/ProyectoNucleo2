@@ -1,7 +1,7 @@
 /**
  * Repositorio: Grupos
  */
-const { query } = require('../../../database/pool');
+const { sequelize } = require('../../../database/sequelize');
 const { Grupo } = require('../entities/grupo.entity');
 
 class GrupoRepository {

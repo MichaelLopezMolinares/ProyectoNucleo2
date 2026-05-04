@@ -2,7 +2,7 @@
  * Repositorio: Visualización de Horarios
  * Consultas de solo lectura optimizadas con JOINs para la API de visualización
  */
-const { query } = require('../../../database/pool');
+const { sequelize } = require('../../../database/sequelize');
 
 class ScheduleViewRepository {
   /**

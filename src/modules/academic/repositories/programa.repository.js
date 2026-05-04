@@ -1,7 +1,7 @@
 /**
  * Repositorio: Programas Académicos
  */
-const { query } = require('../../../database/pool');
+const { sequelize } = require('../../../database/sequelize');
 const { Programa } = require('../entities/programa.entity');
 
 class ProgramaRepository {

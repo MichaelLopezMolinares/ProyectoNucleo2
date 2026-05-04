@@ -3,7 +3,7 @@
  * Módulo: Auth
  * Capa de acceso a datos — solo queries SQL
  */
-const { query } = require('../../../database/pool');
+const { sequelize } = require('../../../database/sequelize');
 const { Usuario } = require('../entities/usuario.entity');
 
 class AuthRepository {

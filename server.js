@@ -4,16 +4,15 @@
  */
 const app = require('./src/app');
 const { serverConfig } = require('./src/config/server.config');
-const { pool } = require('./src/database/pool');
+const { sequelize } = require('./src/database/sequelize');
 
 const PORT = serverConfig.port;
 
 async function bootstrap() {
   try {
-    // Verificar conexión a base de datos
-    const client = await pool.connect();
-    console.log('✅ Conexión a PostgreSQL establecida');
-    client.release();
+    // Verificar conexión a base de datos con Sequelize
+    await sequelize.authenticate();
+    console.log('✅ Conexión a PostgreSQL (Supabase) establecida');
 
     // Iniciar servidor
     app.listen(PORT, () => {

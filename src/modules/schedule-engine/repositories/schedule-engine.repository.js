@@ -1,7 +1,7 @@
 /**
  * Repositorio: Horarios y Asignaciones
  */
-const { query, getClient } = require('../../../database/pool');
+const { sequelize } = require('../../../database/sequelize');
 const { Horario } = require('../entities/horario.entity');
 const { Asignacion } = require('../entities/asignacion.entity');
 const { Conflicto } = require('../entities/conflicto.entity');
