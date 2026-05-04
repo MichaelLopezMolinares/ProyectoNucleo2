@@ -23,8 +23,8 @@ class ScheduleViewRepository {
     }
 
     sql += ' ORDER BY h.created_at DESC';
-    const result = await query(sql, params);
-    return result.rows;
+    const result = await sequelize.query(sql, params);
+    return result;
   }
 
   /**
@@ -85,8 +85,8 @@ class ScheduleViewRepository {
     }
 
     sql += ' ORDER BY a.dia, a.hora_inicio';
-    const result = await query(sql, params);
-    return result.rows;
+    const result = await sequelize.query(sql, params);
+    return result;
   }
 
   /**
@@ -107,7 +107,7 @@ class ScheduleViewRepository {
    * Estadísticas de un horario
    */
   async getStats(horarioId) {
-    const result = await query(`
+    const result = await sequelize.query(`
       SELECT
         COUNT(*) AS total_asignaciones,
         COUNT(DISTINCT docente_id) AS total_docentes,
@@ -117,7 +117,7 @@ class ScheduleViewRepository {
       FROM asignaciones
       WHERE horario_id = $1
     `, [horarioId]);
-    return result.rows[0];
+    return result[0];
   }
 }
 

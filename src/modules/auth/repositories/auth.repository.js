@@ -54,7 +54,7 @@ class AuthRepository {
       }
     );
 
-    return new Usuario(result[0][0]);
+    return result[0][0] ? new Usuario(result[0][0]) : null;
   }
 
   async update(id, { nombre, email, rol, activo }) {
@@ -76,17 +76,17 @@ class AuthRepository {
     return result[0][0] ? new Usuario(result[0][0]) : null;
   }
 
-  async delete(id) {
-    const result = await sequelize.query(
-      'DELETE FROM usuarios WHERE id = :id',
-      {
-        replacements: { id },
-        type: QueryTypes.DELETE
-      }
-    );
+async delete(id) {
+  await sequelize.query(
+    'DELETE FROM usuarios WHERE id = :id',
+    {
+      replacements: { id },
+      type: QueryTypes.DELETE
+    }
+  );
 
-    return result[1] > 0; // filas afectadas
-  }
+  return true; 
+}
 }
 
 module.exports = { AuthRepository };
