@@ -96,6 +96,14 @@ class AsignaturaRepository {
 
     return rows.length > 0;
   }
+
+  async findPeriodos() {
+  const result = await sequelize.query(
+    'SELECT * FROM periodos_academicos ORDER BY codigo'
+  );
+
+  return result.map(r => r);
+}
 }
 
 module.exports = { AsignaturaRepository };

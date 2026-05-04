@@ -29,6 +29,8 @@ export const academicApi = {
   createGrupo: (data) => ApiClient.post('/academic/grupos', data),
   updateGrupo: (id, data) => ApiClient.put(`/academic/grupos/${id}`, data),
   deleteGrupo: (id) => ApiClient.delete(`/academic/grupos/${id}`),
+
+  getPeriodos: () => ApiClient.get('/academic/periodos'),
 };
 
 export const teacherApi = {

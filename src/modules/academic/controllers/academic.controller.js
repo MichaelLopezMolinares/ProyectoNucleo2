@@ -6,6 +6,7 @@ const { ProgramaService } = require('../services/programa.service');
 const { AsignaturaService } = require('../services/asignatura.service');
 const { GrupoService } = require('../services/grupo.service');
 const { ResponseUtil } = require('../../../shared/utils/response.util');
+const { PeriodoService } = require('../services/periodo.service');
 const {
   CreateProgramaDTO, UpdateProgramaDTO,
   CreateAsignaturaDTO, UpdateAsignaturaDTO,
@@ -17,6 +18,7 @@ class AcademicController {
     this.programaService = new ProgramaService();
     this.asignaturaService = new AsignaturaService();
     this.grupoService = new GrupoService();
+    this.periodoService = new PeriodoService();
   }
 
   // ─── Programas ──────────────────────────────────────────────
@@ -57,6 +59,14 @@ class AcademicController {
     } catch (e) { next(e); }
   };
 
+getPeriodos = async (req, res, next) => {
+  try {
+    const data = await this.periodoService.findAll();
+    ResponseUtil.success(res, data);
+  } catch (e) {
+    next(e);
+  }
+};
   // ─── Asignaturas ────────────────────────────────────────────
   findAllAsignaturas = async (req, res, next) => {
     try {

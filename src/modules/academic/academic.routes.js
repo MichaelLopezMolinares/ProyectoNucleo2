@@ -10,6 +10,7 @@ const router = Router();
 const controller = new AcademicController();
 
 // ─── Programas ──────────────────────────────────────────────
+router.get('/periodos', controller.getPeriodos);
 router.get('/programas', controller.findAllProgramas);
 router.get('/programas/:id', controller.findProgramaById);
 router.post('/programas', programaValidation, controller.createPrograma);

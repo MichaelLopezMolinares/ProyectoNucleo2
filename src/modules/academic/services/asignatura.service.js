@@ -38,6 +38,10 @@ class AsignaturaService {
     return asignatura;
   }
 
+  async findPeriodos() {
+  return await this.repository.findPeriodos();
+}
+
   async delete(id) {
     const deleted = await this.repository.delete(id);
     if (!deleted) throw new NotFoundException('Asignatura', id);
