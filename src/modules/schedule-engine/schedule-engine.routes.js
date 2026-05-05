@@ -13,8 +13,13 @@ const controller = new ScheduleEngineController();
 router.get('/strategies', controller.getStrategies);
 
 // Generar horario (solo ADMIN y COORDINADOR)
-router.post('/generate', roleMiddleware('ADMIN', 'COORDINADOR'), generateValidation, controller.generate);
-
+router.post(
+  '/generate',
+  authMiddleware,
+  roleMiddleware('ADMIN', 'COORDINADOR'),
+  generateValidation,
+  controller.generate
+);
 // Detalle de un horario generado
 router.get('/:id', controller.getDetail);
 
