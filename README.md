@@ -35,8 +35,8 @@ Sequelize (SQL híbrido)
 JavaScript ES6+
 Nodemon
 ⚙️ Configuración del proyecto
-1. Clonar el repositorio
-git clone https://github.com/tuusuario/agenda-facil.git
+1. Clonar el repositorio:
+git https://github.com/MichaelLopezMolinares/ProyectoNucleo2.git
 cd agenda-facil
 2. Instalar dependencias
 npm install
