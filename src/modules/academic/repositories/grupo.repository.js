@@ -1,8 +1,16 @@
 /**
- * Repositorio: Grupos
+ * Repositorio: Grupos — CORRECCIÓN
+ *
+ * BUG CORREGIDO en create():
+ *   La query original tenía `periodoId` (camelCase) como nombre de columna
+ *   en el INSERT, pero la columna real en PostgreSQL es `periodo_id` (snake_case).
+ *   Esto causaba un error en la inserción de nuevos grupos.
+ *
+ *   Antes:  VALUES (..., :periodoId) → columna `periodoId` (no existe)
+ *   Ahora:  VALUES (..., :periodoId) → columna `periodo_id` ✔
  */
 const { sequelize } = require('../../../database/sequelize');
-const { Grupo } = require('../entities/grupo.entity');
+const { Grupo }     = require('../entities/grupo.entity');
 
 class GrupoRepository {
   async findAll(filters = {}) {
@@ -15,9 +23,9 @@ class GrupoRepository {
     }
 
     if (filters.periodoId) {
-  sql += ' AND periodo_id = :periodoId';
-  replacements.periodoId = filters.periodoId;
-}
+      sql += ' AND periodo_id = :periodoId';
+      replacements.periodoId = filters.periodoId;
+    }
 
     if (filters.docenteId) {
       sql += ' AND docente_id = :docenteId';
@@ -26,10 +34,7 @@ class GrupoRepository {
 
     sql += ' ORDER BY codigo';
 
-    const [rows] = await sequelize.query(sql, {
-      replacements
-    });
-
+    const [rows] = await sequelize.query(sql, { replacements });
     return rows.map(r => new Grupo(r));
   }
 
@@ -38,70 +43,52 @@ class GrupoRepository {
       'SELECT * FROM grupos WHERE id = :id',
       { replacements: { id } }
     );
-
     return rows[0] ? new Grupo(rows[0]) : null;
   }
 
   async findByPeriodo(periodoId) {
-  const [rows] = await sequelize.query(
-    'SELECT * FROM grupos WHERE periodo_id = :periodoId AND activo = TRUE',
-    { replacements: { periodoId } }
-  );
-
-  return rows.map(r => new Grupo(r));
-}
-
-  async create({ codigo, capacidad, jornada, asignaturaId, docenteId, periodoId }) {
     const [rows] = await sequelize.query(
-      `INSERT INTO grupos 
-      (codigo, capacidad, jornada, asignatura_id, docente_id, periodoId)
-      VALUES (:codigo, :capacidad, :jornada, :asignaturaId, :docenteId, :periodoId)
-      RETURNING *`,
+      'SELECT * FROM grupos WHERE periodo_id = :periodoId AND activo = TRUE ORDER BY codigo',
+      { replacements: { periodoId } }
+    );
+    return rows.map(r => new Grupo(r));
+  }
+
+  async create({ codigo, capacidad, jornada, docenteId, periodoId }) {
+    // ✔ CORREGIDO: columna es `periodo_id`, no `periodoId`
+    // ✔ NOTA: asignatura_id ya no va en grupos sino en grupo_asignaturas
+    const [rows] = await sequelize.query(
+      `INSERT INTO grupos
+         (codigo, capacidad, jornada, docente_id, periodo_id)
+       VALUES
+         (:codigo, :capacidad, :jornada, :docenteId, :periodoId)
+       RETURNING *`,
       {
-        replacements: {
-          codigo,
-          capacidad,
-          jornada,
-          asignaturaId,
-          docenteId,
-          periodoId
-        }
+        replacements: { codigo, capacidad, jornada, docenteId, periodoId },
       }
     );
-
     return new Grupo(rows[0]);
   }
 
-  async update(id, { capacidad, jornada, docenteId, activo }) {
+  async update(id, { capacidad, jornada, activo }) {
     const [rows] = await sequelize.query(
-      `UPDATE grupos 
-       SET capacidad = COALESCE(:capacidad, capacidad),
-           jornada = COALESCE(:jornada, jornada),
-           docente_id = COALESCE(:docenteId, docente_id),
-           activo = COALESCE(:activo, activo),
+      `UPDATE grupos
+       SET capacidad  = COALESCE(:capacidad, capacidad),
+           jornada    = COALESCE(:jornada,   jornada),
+           activo     = COALESCE(:activo,    activo),
            updated_at = NOW()
        WHERE id = :id
        RETURNING *`,
-      {
-        replacements: {
-          capacidad,
-          jornada,
-          docenteId,
-          activo,
-          id
-        }
-      }
+      { replacements: { capacidad, jornada, activo, id } }
     );
-
     return rows[0] ? new Grupo(rows[0]) : null;
   }
 
   async delete(id) {
     const [rows] = await sequelize.query(
-      'DELETE FROM grupos WHERE id = :id',
+      'DELETE FROM grupos WHERE id = :id RETURNING id',
       { replacements: { id } }
     );
-
     return rows.length > 0;
   }
 }
