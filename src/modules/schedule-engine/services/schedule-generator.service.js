@@ -126,9 +126,36 @@ class ScheduleGeneratorService {
         { disponibilidadDocentes, aulas: aulasMap, grupos: gruposMap }
       );
 
+      const conflictosCorregidos = validation.conflicts.map(c => {
+  // Buscar la asignación exacta usando grupo_id + dia + hora_inicio
+  // (el ConstraintValidatorService debería incluir estos campos en el conflicto)
+  const asignacionA = result.assignments.find(a =>
+    a.grupo_id   === c.grupo_id_a &&
+    a.dia        === c.dia        &&
+    a.hora_inicio === c.hora_inicio
+  );
+ 
+  const asignacionB = c.grupo_id_b
+    ? result.assignments.find(a =>
+        a.grupo_id    === c.grupo_id_b &&
+        a.dia         === c.dia        &&
+        a.hora_inicio === c.hora_inicio
+      )
+    : null;
+ 
+  return {
+    tipo:        c.tipo,
+    severidad:   c.severidad,
+    descripcion: c.descripcion,
+    // ✔ UUIDs limpios — el repo los inserta directamente como FK
+    asignacionA: asignacionA?.id || null,
+    asignacionB: asignacionB?.id || null,
+  };
+});
+
       // 7. Persistir conflictos detectados
       if (validation.conflicts.length > 0) {
-        await this.repository.saveConflictos(horario.id, validation.conflicts);
+        await this.repository.saveConflictos(horario.id, conflictosCorregidos);
       }
 
       // 8. Actualizar estado del horario

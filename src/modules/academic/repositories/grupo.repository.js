@@ -14,10 +14,10 @@ class GrupoRepository {
       replacements.asignaturaId = filters.asignaturaId;
     }
 
-    if (filters.periodo) {
-      sql += ' AND periodo = :periodo';
-      replacements.periodo = filters.periodo;
-    }
+    if (filters.periodoId) {
+  sql += ' AND periodo_id = :periodoId';
+  replacements.periodoId = filters.periodoId;
+}
 
     if (filters.docenteId) {
       sql += ' AND docente_id = :docenteId';
@@ -42,20 +42,20 @@ class GrupoRepository {
     return rows[0] ? new Grupo(rows[0]) : null;
   }
 
-  async findByPeriodo(periodo) {
-    const [rows] = await sequelize.query(
-      'SELECT * FROM grupos WHERE periodo = :periodo AND activo = TRUE',
-      { replacements: { periodo } }
-    );
+  async findByPeriodo(periodoId) {
+  const [rows] = await sequelize.query(
+    'SELECT * FROM grupos WHERE periodo_id = :periodoId AND activo = TRUE',
+    { replacements: { periodoId } }
+  );
 
-    return rows.map(r => new Grupo(r));
-  }
+  return rows.map(r => new Grupo(r));
+}
 
-  async create({ codigo, capacidad, jornada, asignaturaId, docenteId, periodo }) {
+  async create({ codigo, capacidad, jornada, asignaturaId, docenteId, periodoId }) {
     const [rows] = await sequelize.query(
       `INSERT INTO grupos 
-      (codigo, capacidad, jornada, asignatura_id, docente_id, periodo)
-      VALUES (:codigo, :capacidad, :jornada, :asignaturaId, :docenteId, :periodo)
+      (codigo, capacidad, jornada, asignatura_id, docente_id, periodoId)
+      VALUES (:codigo, :capacidad, :jornada, :asignaturaId, :docenteId, :periodoId)
       RETURNING *`,
       {
         replacements: {
@@ -64,7 +64,7 @@ class GrupoRepository {
           jornada,
           asignaturaId,
           docenteId,
-          periodo
+          periodoId
         }
       }
     );

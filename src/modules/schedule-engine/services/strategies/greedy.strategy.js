@@ -1,97 +1,134 @@
 /**
  * ═══════════════════════════════════════════════════════════════
- * ESTRATEGIA GREEDY (Voraz)
+ * ESTRATEGIA GREEDY — DISTRIBUCIÓN SEMANAL FORZADA
  * ═══════════════════════════════════════════════════════════════
  *
- * Asignación incremental:
- * 1. Ordena grupos por prioridad (horas semanales desc)
- * 2. Para cada grupo, intenta asignar en el primer slot
- *    factible (día + hora + aula) que pase la validación
- * 3. Si no encuentra slot, marca como no asignado
+ * ROOT CAUSE DEL BUG "3 clases solo en Lunes":
  *
- * Ventajas: Rápido, determinístico
- * Desventajas: No garantiza solución óptima
+ * El greedy original itera días en orden fijo [LUNES, MARTES...].
+ * El PRIMER slot factible se asigna → todos los grupos van al
+ * primer slot del Lunes porque no hay nada que los obligue a
+ * separarse en la semana. Con horasSemanales=2 (1 bloque),
+ * el resultado es exactamente "N grupos, todos en Lunes".
+ *
+ * FIX: diaLoad — contador de asignaciones por día.
+ * Cada bloque prioriza el día con menos carga global.
+ * Resultado: distribución automática en toda la semana.
  * ═══════════════════════════════════════════════════════════════
  */
 const { ScheduleStrategy } = require('./schedule-strategy.interface');
+
+const BLOCK_SIZE = 2;
 
 class GreedyStrategy extends ScheduleStrategy {
   constructor() {
     super('greedy');
   }
 
-  async generate({ grupos, aulas, disponibilidadDocentes, aulasMap, gruposMap, constraintValidator, timeSlots, days }) {
+  async generate({
+    grupos,
+    aulas,
+    disponibilidadDocentes,
+    aulasMap,
+    gruposMap,
+    constraintValidator,
+    timeSlots,
+    days,
+  }) {
     const assignments = [];
-    const unassigned = [];
-    let attempts = 0;
+    const unassigned  = [];
+    let attempts      = 0;
 
-    // Ordenar grupos por horas semanales (mayor prioridad primero)
-    const sortedGrupos = [...grupos].sort((a, b) =>
-      (b.horasSemanales || 2) - (a.horasSemanales || 2)
+    // Contador de asignaciones por día — permite distribuir la carga en la semana
+    const diaLoad = {};
+    for (const d of days) diaLoad[d] = 0;
+
+    // Heurística: grupos con más horas semanales primero (más difíciles de encajar)
+    const sortedGrupos = [...grupos].sort(
+      (a, b) => (b.horasSemanales || BLOCK_SIZE) - (a.horasSemanales || BLOCK_SIZE)
     );
 
+    const context = { disponibilidadDocentes, aulas: aulasMap, grupos: gruposMap };
+
     for (const grupo of sortedGrupos) {
-      let assigned = false;
+      const horasSemanales  = grupo.horasSemanales || BLOCK_SIZE;
+      const blocksNeeded    = Math.ceil(horasSemanales / BLOCK_SIZE);
+      const grupoAssignments = [];
+      const usedSlots        = new Set(); // "dia-horaInicio" usados por este grupo
 
-      // Intentar cada combinación de día + franja + aula
-      for (const dia of days) {
-        if (assigned) break;
+      for (let blockIdx = 0; blockIdx < blocksNeeded; blockIdx++) {
+        let blockAssigned = false;
 
-        for (const slot of timeSlots) {
-          if (assigned) break;
+        // Días ya usados por bloques anteriores de ESTE grupo
+        const diasDelGrupo = new Set(grupoAssignments.map(a => a.dia));
 
-          for (const aula of aulas) {
-            attempts++;
+        // Orden de días:
+        //   1º — días que este grupo aún NO ha usado (fuerza días distintos)
+        //   2º — días que ya usó (solo si no hay otra opción)
+        //   Dentro de cada grupo, ordenar por carga global ascendente
+        const orderedDays = [
+          ...days.filter(d => !diasDelGrupo.has(d)).sort((a, b) => diaLoad[a] - diaLoad[b]),
+          ...days.filter(d =>  diasDelGrupo.has(d)).sort((a, b) => diaLoad[a] - diaLoad[b]),
+        ];
 
-            const candidateAssignment = {
-              grupo_id: grupo.id,
-              docente_id: grupo.docenteId,
-              aula_id: aula.id,
-              dia,
-              hora_inicio: slot.start,
-              hora_fin: slot.end,
-            };
+        outerSearch:
+        for (const dia of orderedDays) {
+          for (const slot of timeSlots) {
+            const slotKey = `${dia}-${slot.start}`;
+            if (usedSlots.has(slotKey)) continue; // slot ya usado por este grupo
 
-            // Contexto para validación
-            const context = {
-              disponibilidadDocentes,
-              aulas: aulasMap,
-              grupos: gruposMap,
-            };
+            for (const aula of aulas) {
+              attempts++;
 
-            // Validar con el motor de restricciones
-            const isFeasible = constraintValidator.isFeasible(
-              candidateAssignment,
-              assignments,
-              context
-            );
+              const candidate = {
+                grupo_id:    grupo.id,
+                docente_id:  grupo.docenteId || null,
+                aula_id:     aula.id,
+                dia,
+                hora_inicio: slot.start,
+                hora_fin:    slot.end,
+              };
 
-            if (isFeasible) {
-              assignments.push(candidateAssignment);
-              assigned = true;
+              const isFeasible = constraintValidator.isFeasible(
+                candidate,
+                [...assignments, ...grupoAssignments],
+                context
+              );
+
+              if (isFeasible) {
+                grupoAssignments.push(candidate);
+                usedSlots.add(slotKey);
+                diaLoad[dia]++;
+                blockAssigned = true;
+                break outerSearch;
+              }
             }
           }
         }
+
+        if (!blockAssigned) {
+          unassigned.push({
+            grupoId:     grupo.id,
+            grupoCodigo: grupo.codigo,
+            bloque:      blockIdx + 1,
+            razon:       'No se encontró slot factible para este bloque',
+          });
+        }
       }
 
-      if (!assigned) {
-        unassigned.push({
-          grupoId: grupo.id,
-          grupoCodigo: grupo.codigo,
-          razon: 'No se encontró slot factible',
-        });
-      }
+      assignments.push(...grupoAssignments);
     }
 
     return {
       assignments,
       unassigned,
       stats: {
-        strategy: this.name,
+        strategy:    this.name,
         totalGrupos: grupos.length,
-        assigned: assignments.length,
-        unassigned: unassigned.length,
+        assigned:    assignments.length,
+        unassigned:  unassigned.length,
         attempts,
+        distribucionPorDia: { ...diaLoad },
       },
     };
   }
